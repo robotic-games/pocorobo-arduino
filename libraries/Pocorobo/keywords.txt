@@ -1,0 +1,48 @@
+#######################################
+# Pocorobo ライブラリの構文強調
+#######################################
+
+#######################################
+# クラスとオブジェクト (KEYWORD1)
+#######################################
+
+Poco	KEYWORD1
+PocoDevices	KEYWORD1
+PocoServo	KEYWORD1
+PocoMotor	KEYWORD1
+PocoLed	KEYWORD1
+PocoBuzzer	KEYWORD1
+PocoEncoder	KEYWORD1
+
+#######################################
+# メソッド (KEYWORD2)
+#######################################
+
+begin	KEYWORD2
+servo	KEYWORD2
+motoencodeled	KEYWORD2
+buzzeangle	KEYWORD2
+pulse	KEYWORD2
+pulseUs	KEYWORD2
+stop	KEYWORD2
+run	KEYWORD2
+percent	KEYWORD2
+set	KEYWORD2
+off	KEYWORD2
+tone	KEYWORD2
+frequency	KEYWORD2
+count	KEYWORD2
+reset	KEYWORD2
+
+#######################################
+# 定数 (LITERAL1)
+#######################################
+
+POCOROBO_BOARD_STANDARD	LITERAL1
+POCOROBO_BOARD_MINI	LITERAL1
+POCOROBO_BOARD_NAME	LITERAL1
+POCOROBO_SERVO_COUNT	LITERAL1
+POCOROBO_MOTOR_COUNT	LITERAL1
+POCOROBO_ENCODER_COUNT	LITERAL1
+POCOROBO_HAS_BUZZER	LITERAL1
+POCOROBO_HAS_ENCODER	LITERAL1
