@@ -37,6 +37,7 @@ bool PocoDevices::begin() {
 #if POCOROBO_HAS_ENCODER
   ok = beginEncoders() && ok;
 #endif
+  ok = controller.begin() && ok;  // 装置の初期化が全部済んでから
   return ok;
 }
 

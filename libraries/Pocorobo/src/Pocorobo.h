@@ -11,7 +11,10 @@
 //   Poco.buzzer.off();
 //   Poco.encoder(0).count();         // 累積カウント(正転で増加・逆転で減少)。エンコーダの無い機種では使えない
 //   Poco.encoder(0).reset();
-//   Poco.stop();                     // 全装置を初期状態へ
+//   Poco.stop();                     // 全装置を初期状態へ(無線には触れない)
+//   Poco.controller.isConnected();   // 専用コントローラから入力が届いていれば true
+//   Poco.controller.axis(1);         // 十字キー(0 = 左右・1 = 上下、-100〜100)。button(0) でボタン
+//   Poco.controller.startPairing();  // 初回だけ。コントローラのペアリングボタンも押す(以後は自動でつながる)
 //
 // 機種ごとの装置の有無は POCOROBO_HAS_BUZZER / POCOROBO_HAS_ENCODER、個数は POCOROBO_*_COUNT で分かる
 #pragma once
@@ -22,6 +25,7 @@
 #error "ボードに Pocorobo Standard または Pocorobo Mini を選んでください"
 #endif
 
+#include "internal/PocoController.h"
 #include "internal/PocoLed.h"
 #include "internal/PocoMotor.h"
 #include "internal/PocoServo.h"
@@ -35,7 +39,7 @@
 // 全装置のまとめ。グローバル変数 Poco を使う
 class PocoDevices {
 public:
-  // 全装置を初期化する。USB 切替をパソコン側に固定してから各装置を初期化する
+  // 全装置を初期化する。USB 切替をパソコン側に固定してから各装置を初期化し、最後に専用コントローラの受信を始める
   // 1 つでも失敗したら false(失敗した装置の操作は無効になるが、他は使える)
   bool begin();
 
@@ -50,6 +54,7 @@ public:
 #if POCOROBO_HAS_BUZZER
   PocoBuzzer buzzer;
 #endif
+  PocoController controller;  // 専用コントローラ(無線)。スケッチ側で WiFi ライブラリを使うと干渉する
 
   // 全装置を初期状態へ(サーボ: PWM 停止、モータ: 0、LED: 消灯、ブザー: 停止、エンコーダ: 0)
   void stop();

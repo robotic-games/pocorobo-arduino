@@ -13,6 +13,7 @@ PocoMotor	KEYWORD1
 PocoLed	KEYWORD1
 PocoBuzzer	KEYWORD1
 PocoEncoder	KEYWORD1
+PocoController	KEYWORD1
 
 #######################################
 # メソッド (KEYWORD2)
@@ -20,8 +21,11 @@ PocoEncoder	KEYWORD1
 
 begin	KEYWORD2
 servo	KEYWORD2
-motoencodeled	KEYWORD2
-buzzeangle	KEYWORD2
+motor	KEYWORD2
+encoder	KEYWORD2
+led	KEYWORD2
+buzzer	KEYWORD2
+angle	KEYWORD2
 pulse	KEYWORD2
 pulseUs	KEYWORD2
 stop	KEYWORD2
@@ -33,6 +37,16 @@ tone	KEYWORD2
 frequency	KEYWORD2
 count	KEYWORD2
 reset	KEYWORD2
+controller	KEYWORD2
+startPairing	KEYWORD2
+cancelPairing	KEYWORD2
+unpair	KEYWORD2
+isPaired	KEYWORD2
+isConnected	KEYWORD2
+state	KEYWORD2
+axis	KEYWORD2
+button	KEYWORD2
+batteryLow	KEYWORD2
 
 #######################################
 # 定数 (LITERAL1)
@@ -46,3 +60,8 @@ POCOROBO_MOTOR_COUNT	LITERAL1
 POCOROBO_ENCODER_COUNT	LITERAL1
 POCOROBO_HAS_BUZZER	LITERAL1
 POCOROBO_HAS_ENCODER	LITERAL1
+Unpaired	LITERAL1
+Pairing	LITERAL1
+PairingFailed	LITERAL1
+Disconnected	LITERAL1
+Connected	LITERAL1
