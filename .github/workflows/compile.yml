@@ -4,20 +4,52 @@ on:
   push:
   pull_request:
 
+env:
+  VERSION: 0.0.0-ci
+  POCOROBO_INDEX_URL: http://localhost:8123/package_pocorobo_index.json
+
 jobs:
   compile:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        board: [standard, mini]
     steps:
       - uses: actions/checkout@v4
 
       - uses: arduino/setup-arduino-cli@v2
 
-      - name: Install ESP32 core
-        run: arduino-cli core install esp32:esp32@3.3.11 --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
+      # 公式 core を土台にパッケージを組み立てる(build/esp32-core-<版>/ に公式 core が残る)
+      - name: Build package
+        run: tools/build-package.sh --version "$VERSION" --out build/dist
+
+      # チェックイン済みの boards.txt が生成スクリプトの出力と一致することを確認する
+      - name: Check boards.txt is up to date
+        run: |
+          tools/make-boards-txt.py
+          git diff --exit-code -- platform/boards.txt
+
+      - name: Generate index
+        run: >
+          tools/gen-index.py --version "$VERSION"
+          --zip "build/dist/pocorobo-esp32-$VERSION.zip"
+          --zip-url "http://localhost:8123/pocorobo-esp32-$VERSION.zip"
+          --out build/dist/package_pocorobo_index.json
+
+      # ボードマネージャと同じ経路(index → zip → ツール群)でインストールする
+      - name: Serve package
+        run: |
+          nohup python3 -m http.server 8123 --bind 127.0.0.1 --directory build/dist > build/http.log 2>&1 &
+          for i in $(seq 1 10); do
+            curl -fsS -o /dev/null "$POCOROBO_INDEX_URL" && exit 0
+            sleep 1
+          done
+          echo "HTTP サーバが起動しません" >&2
+          cat build/http.log >&2
+          exit 1
+
+      - name: Install platform
+        run: |
+          arduino-cli core update-index --additional-urls "$POCOROBO_INDEX_URL"
+          arduino-cli core install pocorobo:esp32 --additional-urls "$POCOROBO_INDEX_URL"
+          arduino-cli board listall --additional-urls "$POCOROBO_INDEX_URL" | grep pocorobo:esp32:
 
       - name: Compile examples
-        run: tools/compile-examples.sh ${{ matrix.board }}
+        run: tools/compile-examples.sh

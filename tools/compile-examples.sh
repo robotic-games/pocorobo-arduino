@@ -2,15 +2,20 @@
 # スケッチ例を arduino-cli でコンパイルする
 #
 # 使い方: tools/compile-examples.sh [standard|mini]   (引数省略で両方)
-#   arduino-cli のパスは環境変数 ARDUINO_CLI で差し替えられる(既定: arduino-cli)
+#   ボード pocorobo:esp32:pocorobo_<board> でコンパイルする。ライブラリ Pocorobo は
+#   platform に同梱されたものが使われる(--libraries は付けない)。
+#   platform pocorobo:esp32 のインストールは呼び出し側の責任
+#   (arduino-cli core install pocorobo:esp32 --additional-urls $POCOROBO_INDEX_URL)。
 #
-# ボードパッケージができるまでの暫定として、汎用の ESP32-S3 ボードに
-# platform/variants/pocorobo_<board>/pins_arduino.h を -include で差し込んでコンパイルする。
+#   環境変数
+#     ARDUINO_CLI        arduino-cli のパス(既定: arduino-cli)
+#     POCOROBO_INDEX_URL --additional-urls に渡す index の URL
+#                        (既定: https://robotic-games.github.io/pocorobo-arduino/package_pocorobo_index.json)
 set -euo pipefail
 
 cli="${ARDUINO_CLI:-arduino-cli}"
+index_url="${POCOROBO_INDEX_URL:-https://robotic-games.github.io/pocorobo-arduino/package_pocorobo_index.json}"
 repo="$(cd "$(dirname "$0")/.." && pwd)"
-fqbn="esp32:esp32:esp32s3:CDCOnBoot=cdc,USBMode=hwcdc,FlashSize=8M,PartitionScheme=default_8MB"
 
 if [ $# -eq 0 ]; then
   set -- standard mini
@@ -27,15 +32,12 @@ done
 
 failed=""
 for board in "$@"; do
-  pins="$repo/platform/variants/pocorobo_$board/pins_arduino.h"
   for sketch in "$repo"/libraries/Pocorobo/examples/*/; do
     sketch="${sketch%/}"
     echo "==== $board: $(basename "$sketch")"
     if ! "$cli" compile \
-      --fqbn "$fqbn" \
-      --libraries "$repo/libraries" \
-      --build-property "compiler.cpp.extra_flags=-include \"$pins\"" \
-      --build-property "compiler.c.extra_flags=-include \"$pins\"" \
+      --fqbn "pocorobo:esp32:pocorobo_$board" \
+      --additional-urls "$index_url" \
       --warnings all \
       "$sketch"; then
       failed+="  $board: $(basename "$sketch")"$'\n'
