@@ -1,0 +1,47 @@
+name: release
+
+# タグ v<version> の push で platform zip を GitHub Release に添付し、
+# ボードマネージャが読む index(docs/package_pocorobo_index.json、GitHub Pages で配信)を main に反映する
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Version from tag
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+
+      - name: Build package
+        run: tools/build-package.sh --version "$VERSION" --out build/dist
+
+      - name: Generate index
+        run: >
+          tools/gen-index.py --version "$VERSION"
+          --zip "build/dist/pocorobo-esp32-$VERSION.zip"
+          --zip-url "https://github.com/${{ github.repository }}/releases/download/v$VERSION/pocorobo-esp32-$VERSION.zip"
+          --out build/dist/package_pocorobo_index.json
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/dist/pocorobo-esp32-${{ env.VERSION }}.zip
+
+      # index は Release ができてから公開する(zip の URL が Release の添付を指すため)
+      - name: Publish index to main
+        run: |
+          git fetch origin main
+          git checkout -B main origin/main
+          mkdir -p docs
+          cp build/dist/package_pocorobo_index.json docs/package_pocorobo_index.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/package_pocorobo_index.json
+          git commit -m "index を v$VERSION に更新"
+          git push origin main
