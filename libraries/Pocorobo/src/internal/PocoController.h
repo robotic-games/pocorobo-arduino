@@ -56,16 +56,26 @@ public:
 
 private:
   friend class PocoDevices;
+  friend class PocoGamepad;
 
   // 保存済みのペアリング情報を読み、受信タスクを起動する。無線はまだ立ち上げない
   bool begin();
 
+  // USB の状態(USB ゲームパッドの自動切り替えが知らせてくる)。標準プログラムと同じ規則で無線を変える:
+  //   USB ゲームパッド接続中は無線を止め、ペアリングも受け付けない
+  //   パソコン(給電)接続中の待機は常時受信(省電力しない)。電池駆動の待機は間欠受信
+  void setUsbState(bool pcConnected, bool usbGamepadConnected) {
+    m_pcConnected.store(pcConnected);
+    m_usbGamepadConnected.store(usbGamepadConnected);
+  }
+
   // 無線の状態(タスク内で遷移する)
   enum class RfState : uint8_t {
-    Off,      // 無線停止
-    Pairing,  // チャネル 1 で常時受信
-    Standby,  // 運用チャネルで間欠受信(省電力)
-    Driving,  // 運用チャネルで常時受信
+    Off,             // 無線停止
+    Pairing,         // チャネル 1 で常時受信
+    StandbyBattery,  // 運用チャネルで間欠受信(省電力)。電池駆動の待機
+    StandbyPc,       // 運用チャネルで常時受信。パソコン(給電)接続中の待機
+    Driving,         // 運用チャネルで常時受信
   };
 
   // ペアリングの進行段階
@@ -158,6 +168,8 @@ private:
   std::atomic<bool>     m_pairingActive{false};
   std::atomic<bool>     m_pairingFailed{false};
   std::atomic<uint8_t>  m_command{0};
+  std::atomic<bool>     m_pcConnected{false};          // Type-C にパソコン(給電)がある
+  std::atomic<bool>     m_usbGamepadConnected{false};  // USB ゲームパッドがつながっている
 
   // --- 受信タスク内だけで触る ---
   TaskHandle_t m_task        = nullptr;

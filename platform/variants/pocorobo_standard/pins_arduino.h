@@ -31,6 +31,8 @@ static const uint8_t PIN_LED        = PIN_RGB_LED;
 static const uint8_t PIN_BUZZER     = 39;
 static const uint8_t PIN_BUTTON     = 21;  // 本体のボタン
 static const uint8_t PIN_USB_SELECT = 47;  // LOW: Type-C（パソコン） / HIGH: Type-A（ゲームパッド）
+static const uint8_t PIN_USB_SENSE  = 8;  // Type-C の給電を ADC で読む（パソコンがつながっているかの判定用）
+#define POCOROBO_USB_SENSE_THRESHOLD_MV 200  // これを超えたら「パソコンあり」（mV）
 
 // ---- 拡張コネクタ ----
 static const uint8_t SDA = 40;  // I2C コネクタ（3.3V。プルアップ抵抗は基板に無い）

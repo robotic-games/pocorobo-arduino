@@ -17,6 +17,8 @@
 //   Poco.controller.startPairing();  // 初回だけ。コントローラのペアリングボタンも押す(以後は自動でつながる)
 //   Poco.attracts.begin();           // 競技システム ATTRACTS のトランシーバを UART コネクタにつないだとき(Standard のみ)
 //   Poco.attracts.key(PocoAttracts::Key::W);  // 操縦者のキー。mouseDeltaX() でマウス、hp() などで機体の状態
+//   Poco.gamepad.begin();            // USB ゲームパッド(Type-A)を使うとき。パソコンが無いときだけ Type-A に切り替わる
+//   Poco.gamepad.axis(0);            // スティック(-100〜100)。button(0) でボタン。isConnected() でつながっているか
 //
 // 機種ごとの装置の有無は POCOROBO_HAS_BUZZER / POCOROBO_HAS_ENCODER、個数は POCOROBO_*_COUNT で分かる
 #pragma once
@@ -28,6 +30,7 @@
 #endif
 
 #include "internal/PocoController.h"
+#include "internal/PocoGamepad.h"
 #include "internal/PocoLed.h"
 #include "internal/PocoMotor.h"
 #include "internal/PocoServo.h"
@@ -60,6 +63,7 @@ public:
   PocoBuzzer buzzer;
 #endif
   PocoController controller;  // 専用コントローラ(無線)。スケッチ側で WiFi ライブラリを使うと干渉する
+  PocoGamepad    gamepad;     // USB ゲームパッド(Type-A)。使うときは gamepad.begin() を呼ぶ。つながっている間は無線が止まる
 #if defined(POCOROBO_BOARD_STANDARD)
   PocoAttracts attracts;  // 競技システム ATTRACTS(UART コネクタ)。使うときは attracts.begin() を呼ぶ
 #endif

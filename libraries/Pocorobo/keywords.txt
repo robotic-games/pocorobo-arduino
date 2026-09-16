@@ -15,6 +15,7 @@ PocoBuzzer	KEYWORD1
 PocoEncoder	KEYWORD1
 PocoController	KEYWORD1
 PocoAttracts	KEYWORD1
+PocoGamepad	KEYWORD1
 
 #######################################
 # メソッド (KEYWORD2)
@@ -49,6 +50,8 @@ axis	KEYWORD2
 button	KEYWORD2
 batteryLow	KEYWORD2
 attracts	KEYWORD2
+gamepad	KEYWORD2
+isPcConnected	KEYWORD2
 key	KEYWORD2
 mouseDeltaX	KEYWORD2
 mouseDeltaY	KEYWORD2

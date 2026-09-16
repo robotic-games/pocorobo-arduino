@@ -269,6 +269,10 @@ void PocoController::applyCommand() {
 }
 
 void PocoController::doStartPairing() {
+  if (m_usbGamepadConnected.load()) {
+    failPairing("USB ゲームパッド接続中はペアリングできません");
+    return;
+  }
   clearPairingRuntime();
   m_pairingFailed.store(false);
   m_phase            = Phase::CollectBeacon;
@@ -340,18 +344,22 @@ void PocoController::failPairing(const char* reason) {
 
 // ---- 無線の状態 --------------------------------------------------------------
 
+// USB の状態を知らされていない(USB ゲームパッドを使わない)スケッチでは、両方 false のまま
+// 電池駆動と同じ規則になる
 PocoController::RfState PocoController::desiredRfState(int64_t now) const {
-  if (m_pairingActive.load()) {
+  const bool pc         = m_pcConnected.load();
+  const bool usbGamepad = m_usbGamepadConnected.load();
+  if (m_pairingActive.load() && !usbGamepad) {
     return RfState::Pairing;
   }
-  if (!m_hasBond.load()) {
+  if (!m_hasBond.load() || (!pc && usbGamepad)) {
     return RfState::Off;
   }
   const int64_t lastRxUs = snapshot().lastRxUs;
   if (lastRxUs != 0 && now - lastRxUs <= static_cast<int64_t>(proto::kDrivingIdleTimeoutUs)) {
     return RfState::Driving;
   }
-  return RfState::Standby;
+  return pc ? RfState::StandbyPc : RfState::StandbyBattery;
 }
 
 void PocoController::enterRfState(RfState state) {
@@ -376,11 +384,12 @@ void PocoController::enterRfState(RfState state) {
     case RfState::Pairing:
       configurePairingRf();
       break;
-    case RfState::Standby:
+    case RfState::StandbyBattery:
       // 未接続の STA の間欠受信(connectionless power save)。受信窓は待機用の契約値
       configureBondedRf(m_bond.channel);
       configureWakeWindow(proto::kStandbyWakeWindowMs, proto::kStandbyWakeIntervalMs, true);
       break;
+    case RfState::StandbyPc:
     case RfState::Driving:
       configureBondedRf(m_bond.channel);
       configureWakeWindow(kFullRxWakeWindowMs, kFullRxWakeIntervalMs, false);
@@ -640,6 +649,10 @@ void PocoController::processUnpair(const uint8_t* mac, int len) {
 
 void PocoController::tickPairing(int64_t now) {
   if (!m_pairingActive.load()) {
+    return;
+  }
+  if (m_usbGamepadConnected.load()) {
+    failPairing("USB ゲームパッドがつながれたためペアリングを中止しました");
     return;
   }
 

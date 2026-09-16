@@ -68,6 +68,10 @@ void loop() {
 | `Poco.controller.button(id)` | 専用コントローラのボタン | `true` / `false`。番号は下の表 |
 | `Poco.controller.isConnected()` | 入力が届いているか | 直近 0.5 秒以内に受信していれば `true` |
 | `Poco.controller.startPairing()` | ペアリングを始める | 初回だけ。詳しくは次の節 |
+| `Poco.gamepad.begin()` | USB ゲームパッドを使う（USB の自動切り替えを始める） | `setup()` で `Poco.begin()` の後に 1 回。詳しくは「USB ゲームパッド」の節 |
+| `Poco.gamepad.axis(id)` | USB ゲームパッドのスティック | 0 / 1 = 左スティックの左右 / 上下、2 / 3 = 右スティック。−100〜100（右と下が正） |
+| `Poco.gamepad.button(id)` | USB ゲームパッドのボタン | `true` / `false`。番号は「USB ゲームパッド」の節の表 |
+| `Poco.gamepad.isConnected()` | USB ゲームパッドがつながっているか | `true` / `false` |
 | `Poco.attracts.begin()` | 競技システム ATTRACTS の受信を始める | `setup()` で `Poco.begin()` の後に 1 回。Standard のみ。詳しくは「競技システム ATTRACTS」の節 |
 | `Poco.attracts.key(k)` | ATTRACTS の操縦者のキー | `true` / `false`。`k` は `PocoAttracts::Key::W` など |
 | `Poco.attracts.mouseDeltaX()` / `mouseDeltaY()` | マウスの移動量 | 前回読んでからの差分（読むと 0 に戻る）。右と上が正 |
@@ -109,6 +113,32 @@ void loop() {
   delay(10);
 }
 ```
+
+## USB ゲームパッド
+
+本体の Type-A コネクタにつないだ USB ゲームパッドで操縦できます。対応するのはスタジオと同じ機種（一般的な HID ゲームパッド、Xbox 互換、HORIPAD STEAM）です。
+
+1. `setup()` で `Poco.begin()` の後に `Poco.gamepad.begin()` を呼びます
+2. パソコンを外して電池で動かすと、USB が Type-A に切り替わり、ゲームパッドを待ちます
+3. `loop()` から `Poco.gamepad.axis(...)` / `button(...)` で読みます。受信はライブラリが裏で続けるので、定期的に呼ぶものはありません
+
+USB のつなぎ先はスタジオと同じ規則で自動的に切り替わります。パソコンがつながっている間は Type-C（書き込みとシリアルモニタ）、外すと Type-A（ゲームパッド）です。そのため次の点に注意してください。
+
+- ゲームパッドで動かしている本体に書き込むときは、パソコンをつないでから「ツール → ポート」に本体が出るまで数秒待ってください。出る前に書き込むと失敗します
+- Type-A に切り替わっている間、`Serial.println()` の出力は捨てられます
+- USB ゲームパッドがつながっている間、専用コントローラ（無線）は止まり、ペアリングもできません。外すと元に戻ります
+
+| `button(id)` の番号 | ボタン |
+|---|---|
+| 0 / 1 / 2 / 3 | A（下） / B（右） / X（左） / Y（上） |
+| 4 / 5 | LB / RB |
+| 6 / 7 | LT / RT |
+| 8 / 9 | Back / Start |
+| 10 / 11 | 左スティック押し込み / 右スティック押し込み |
+| 12 / 13 / 14 / 15 | 十字キー 上 / 下 / 左 / 右 |
+| 16 | Home |
+
+`axis(0)` / `axis(1)` は左スティック、`axis(2)` / `axis(3)` は右スティックの左右・上下を −100〜100 で返します（右と下が正）。
 
 ## 競技システム ATTRACTS
 
@@ -169,6 +199,7 @@ void loop() {
 | ControllerDrive | 専用コントローラで操縦する（ペアリング済みが前提） |
 | Pairing | 本体のボタン長押しでペアリングを始め、状態を LED で示す |
 | AttractsDrive | 競技システム ATTRACTS のキーボードとマウスで操縦し、HP とヒートをシリアルモニタに出す（Standard のみ） |
+| UsbGamepadDrive | USB ゲームパッドで操縦する。無ければ専用コントローラで操縦する |
 
 ## 拡張コネクタ
 
@@ -190,7 +221,7 @@ SPI の既定ピン（`SS` / `MOSI` / `MISO` / `SCK`）はコネクタに出て�
 
 | 症状 | 対処 |
 |---|---|
-| ポートが出てこない | 標準のプログラムが動いている本体は、BOOT を押しながら RST を押してから書き込みます。ケーブルがデータ通信に対応しているかも確認してください |
+| ポートが出てこない | 標準のプログラムが動いている本体は、BOOT を押しながら RST を押してから書き込みます。`Poco.gamepad.begin()` を使うスケッチが入っている本体は、パソコンをつないで数秒待つと出ます。ケーブルがデータ通信に対応しているかも確認してください |
 | `ボードに Pocorobo Standard または Pocorobo Mini を選んでください` と出る | 「ツール → ボード」で Pocorobo のボードを選んでいません |
 | `'class PocoDevices' has no member named 'buzzer'` などと出る | Mini に無い装置（ブザー・エンコーダ・`attracts`）を呼んでいます |
 | 専用コントローラがつながらない | `Pairing` の例でペアリングし直してください。スケッチで `WiFi` ライブラリを使うと専用コントローラの受信と干渉します |

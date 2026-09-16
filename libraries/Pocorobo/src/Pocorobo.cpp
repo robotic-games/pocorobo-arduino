@@ -23,9 +23,11 @@ bool PocoDevices::begin() {
   }
   m_began = true;
 
-  // USB 切替をパソコン側に固定
-  pinMode(PIN_USB_SELECT, OUTPUT);
-  digitalWrite(PIN_USB_SELECT, LOW);
+  // USB 切替をパソコン側に固定(USB ゲームパッドの自動切り替えが先に始まっていれば、そちらに任せる)
+  if (!gamepad.m_began) {
+    pinMode(PIN_USB_SELECT, OUTPUT);
+    digitalWrite(PIN_USB_SELECT, LOW);
+  }
 
   bool ok = true;
   ok      = beginServos() && ok;
@@ -38,6 +40,7 @@ bool PocoDevices::begin() {
   ok = beginEncoders() && ok;
 #endif
   ok = controller.begin() && ok;  // 装置の初期化が全部済んでから
+  gamepad.linkController(&controller);  // USB の状態が変わったら無線へ知らせる
   return ok;
 }
 
