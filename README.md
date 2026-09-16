@@ -3,7 +3,7 @@
 ポコロボ（Pocorobo）を Arduino IDE で C++ からプログラミングするための、ボードパッケージとライブラリです。
 
 - Arduino IDE の「ボード」に **Pocorobo Standard** と **Pocorobo Mini** が追加されます
-- ライブラリ `Pocorobo` で、サーボ・DC モータ・LED・ブザー・エンコーダ・専用コントローラの入力を、スタジオのブロックと同じ単位で扱えます
+- ライブラリ `Pocorobo` で、サーボ・DC モータ・LED・ブザー・エンコーダ・専用コントローラの入力・競技システム ATTRACTS の入力を、スタジオのブロックと同じ単位で扱えます
 - スケッチ例が付属します。ネット接続が要るのは最初のインストールだけです
 
 ## 対応機種
@@ -30,7 +30,7 @@
 3. **スタジオ用のプログラム（標準のプログラム）が入っている本体は、初回だけ BOOT を押しながら RST を押して**書き込みモードにします。標準のプログラムが動いている間は、USB がパソコンとのネットワーク接続として動いていて、書き込み口が見えないためです
 4. 「ツール → ポート」で本体のポートを選び、［→］（書き込み）を押します。書き込みが終わると自動で再起動して動き出します
 
-2 回目からはボタン操作なしで書き込めます。スケッチで `Serial.println()` を使うと「ツール → シリアルモニタ」（115200）に出力が見えます（MotorAndServo は使っていないので何も出ません。使っている例は EncoderRead と Pairing です）。シリアルモニタを閉じている間の出力は捨てられ、ロボットの動きを止めることはありません。
+2 回目からはボタン操作なしで書き込めます。スケッチで `Serial.println()` を使うと「ツール → シリアルモニタ」（115200）に出力が見えます（MotorAndServo は使っていないので何も出ません。使っている例は EncoderRead・Pairing・AttractsDrive です）。シリアルモニタを閉じている間の出力は捨てられ、ロボットの動きを止めることはありません。
 
 ```cpp
 #include <Pocorobo.h>
@@ -68,8 +68,14 @@ void loop() {
 | `Poco.controller.button(id)` | 専用コントローラのボタン | `true` / `false`。番号は下の表 |
 | `Poco.controller.isConnected()` | 入力が届いているか | 直近 0.5 秒以内に受信していれば `true` |
 | `Poco.controller.startPairing()` | ペアリングを始める | 初回だけ。詳しくは次の節 |
+| `Poco.attracts.begin()` | 競技システム ATTRACTS の受信を始める | `setup()` で `Poco.begin()` の後に 1 回。Standard のみ。詳しくは「競技システム ATTRACTS」の節 |
+| `Poco.attracts.key(k)` | ATTRACTS の操縦者のキー | `true` / `false`。`k` は `PocoAttracts::Key::W` など |
+| `Poco.attracts.mouseDeltaX()` / `mouseDeltaY()` | マウスの移動量 | 前回読んでからの差分（読むと 0 に戻る）。右と上が正 |
+| `Poco.attracts.mouseTotalX()` / `mouseTotalY()` | マウスの累積移動量 | `begin()` からの合計。右と上が正 |
+| `Poco.attracts.isConnected()` | ATTRACTS の入力が届いているか | 直近 0.2 秒以内に受信していれば `true` |
+| `Poco.attracts.hp()` など | ATTRACTS から届く機体の状態 | `hp()` `maxHp()` `heat()` `maxHeat()` `team()` `role()` `bulletSpeedLimit()` |
 
-- Mini には無い装置（ブザー・エンコーダ）の関数は、Mini を選んでいると存在しません。呼ぶとコンパイル時にエラーになります
+- Mini には無い装置（ブザー・エンコーダ）の関数と `Poco.attracts`（UART コネクタが必要）は、Mini を選んでいると存在しません。呼ぶとコンパイル時にエラーになります
 - 待つ・時間を測るには Arduino 標準の `delay()` / `millis()` をそのまま使います
 - `Poco.stop()` はエンコーダのカウントも 0 に戻します。値が要るときは先に読んでください
 
@@ -104,6 +110,55 @@ void loop() {
 }
 ```
 
+## 競技システム ATTRACTS
+
+ATTRACTS は外部の競技システムです。そのトランシーバから届く操縦者の入力（キーボードとマウス）と機体の状態（HP・ヒートなど）を、Standard の UART コネクタで受け取れます。スタジオの ATTRACTS 対応版と同じ内容が読めます。
+
+1. トランシーバの信号線を UART コネクタの `RX` に、GND を GND につなぎます（信号は 3.3 V。ロボットからは送信しないので `TX` は使いません）
+2. `setup()` で `Poco.begin()` の後に `Poco.attracts.begin()` を呼びます
+3. `loop()` から `Poco.attracts.key(...)` などで読みます。受信はライブラリが裏で続けるので、定期的に呼ぶものはありません
+
+`Poco.attracts.begin()` を呼ぶと UART コネクタは ATTRACTS 専用になり、`Serial1` はスケッチから使えません。
+
+| `key(k)` の `k` | キー |
+|---|---|
+| `Key::MouseLeft` / `MouseRight` / `MouseMiddle` / `MouseSide1` / `MouseSide2` | マウスのボタン |
+| `Key::Num1` 〜 `Key::Num5` | 数字キー 1〜5 |
+| `Key::Q` `W` `E` `R` `T` `A` `S` `D` `F` `G` `H` `Z` `X` `C` `V` `B` | 文字キー |
+| `Key::Tab` / `Shift` / `Ctrl` / `Alt` / `Space` / `Enter` | その他のキー |
+
+`Key` は `PocoAttracts::Key` の略です（スケッチの先頭に `using Key = PocoAttracts::Key;` と書くと短く書けます）。キーは押されている間 `true` で、入力が届いていない間はすべて `false` です。
+
+| 機体の状態 | 意味 |
+|---|---|
+| `hp()` / `maxHp()` | 現在の HP と最大 HP |
+| `heat()` / `maxHeat()` | 現在のヒートと最大ヒート |
+| `team()` | 0 = 赤、1 = 青 |
+| `role()` | 0 = Tank、1 = Assault、2 = Standard |
+| `bulletSpeedLimit()` | 弾速上限（m/s） |
+
+機体の状態は、入力が途切れても最後に届いた値を返します（1 度も届いていなければ 0）。
+
+```cpp
+#include <Pocorobo.h>
+
+using Key = PocoAttracts::Key;
+
+void setup() {
+  Poco.begin();
+  Poco.attracts.begin();
+}
+
+void loop() {
+  int forward = 0;
+  if (Poco.attracts.key(Key::W)) forward = 60;    // W で前進
+  if (Poco.attracts.key(Key::S)) forward = -60;   // S で後退
+  Poco.motor(0).run(forward);
+  Poco.motor(1).run(forward);
+  delay(10);
+}
+```
+
 ## スケッチ例
 
 | 例 | 内容 |
@@ -113,6 +168,7 @@ void loop() {
 | EncoderRead | モータを回しながらエンコーダの値をシリアルモニタに出す |
 | ControllerDrive | 専用コントローラで操縦する（ペアリング済みが前提） |
 | Pairing | 本体のボタン長押しでペアリングを始め、状態を LED で示す |
+| AttractsDrive | 競技システム ATTRACTS のキーボードとマウスで操縦し、HP とヒートをシリアルモニタに出す（Standard のみ） |
 
 ## 拡張コネクタ
 
@@ -121,7 +177,7 @@ void loop() {
 | コネクタ | Arduino での名前 | 備考 |
 |---|---|---|
 | I2C コネクタ（両機種） | `SDA` / `SCL` | 3.3 V。プルアップ抵抗は基板にありません（つなぐモジュール側の抵抗を使うか、外付けしてください） |
-| UART コネクタ（Standard のみ） | `TX` / `RX` | `Serial1.begin(115200, SERIAL_8N1, RX, TX)` のように使います |
+| UART コネクタ（Standard のみ） | `TX` / `RX` | `Serial1.begin(115200, SERIAL_8N1, RX, TX)` のように使います。`Poco.attracts.begin()` を呼んだあとは ATTRACTS 専用になります |
 | サーボ・エンコーダのコネクタ | `PIN_SERVO[n]`、`PIN_ENCODER_A[n]` / `PIN_ENCODER_B[n]` | 使っていないコネクタの信号ピンを `pinMode()` / `digitalRead()` / `analogRead()` で流用できます |
 
 SPI の既定ピン（`SS` / `MOSI` / `MISO` / `SCK`）はコネクタに出ていません。SPI を使うときは `SPI.begin(sck, miso, mosi, ss)` でピンを指定してください。
@@ -136,7 +192,7 @@ SPI の既定ピン（`SS` / `MOSI` / `MISO` / `SCK`）はコネクタに出て�
 |---|---|
 | ポートが出てこない | 標準のプログラムが動いている本体は、BOOT を押しながら RST を押してから書き込みます。ケーブルがデータ通信に対応しているかも確認してください |
 | `ボードに Pocorobo Standard または Pocorobo Mini を選んでください` と出る | 「ツール → ボード」で Pocorobo のボードを選んでいません |
-| `'class PocoDevices' has no member named 'buzzer'` などと出る | Mini に無い装置を呼んでいます |
+| `'class PocoDevices' has no member named 'buzzer'` などと出る | Mini に無い装置（ブザー・エンコーダ・`attracts`）を呼んでいます |
 | 専用コントローラがつながらない | `Pairing` の例でペアリングし直してください。スケッチで `WiFi` ライブラリを使うと専用コントローラの受信と干渉します |
 | ロボットが動かない・動きっぱなしになる | `loop()` を抜けてもモータは止まりません。止めたいところで `Poco.stop()` を呼んでください |
 

@@ -15,6 +15,8 @@
 //   Poco.controller.isConnected();   // 専用コントローラから入力が届いていれば true
 //   Poco.controller.axis(1);         // 十字キー(0 = 左右・1 = 上下、-100〜100)。button(0) でボタン
 //   Poco.controller.startPairing();  // 初回だけ。コントローラのペアリングボタンも押す(以後は自動でつながる)
+//   Poco.attracts.begin();           // 競技システム ATTRACTS のトランシーバを UART コネクタにつないだとき(Standard のみ)
+//   Poco.attracts.key(PocoAttracts::Key::W);  // 操縦者のキー。mouseDeltaX() でマウス、hp() などで機体の状態
 //
 // 機種ごとの装置の有無は POCOROBO_HAS_BUZZER / POCOROBO_HAS_ENCODER、個数は POCOROBO_*_COUNT で分かる
 #pragma once
@@ -34,6 +36,9 @@
 #endif
 #if POCOROBO_HAS_ENCODER
 #include "internal/PocoEncoder.h"
+#endif
+#if defined(POCOROBO_BOARD_STANDARD)
+#include "internal/PocoAttracts.h"
 #endif
 
 // 全装置のまとめ。グローバル変数 Poco を使う
@@ -55,6 +60,9 @@ public:
   PocoBuzzer buzzer;
 #endif
   PocoController controller;  // 専用コントローラ(無線)。スケッチ側で WiFi ライブラリを使うと干渉する
+#if defined(POCOROBO_BOARD_STANDARD)
+  PocoAttracts attracts;  // 競技システム ATTRACTS(UART コネクタ)。使うときは attracts.begin() を呼ぶ
+#endif
 
   // 全装置を初期状態へ(サーボ: PWM 停止、モータ: 0、LED: 消灯、ブザー: 停止、エンコーダ: 0)
   void stop();

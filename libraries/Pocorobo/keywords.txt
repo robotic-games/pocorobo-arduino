@@ -14,6 +14,7 @@ PocoLed	KEYWORD1
 PocoBuzzer	KEYWORD1
 PocoEncoder	KEYWORD1
 PocoController	KEYWORD1
+PocoAttracts	KEYWORD1
 
 #######################################
 # メソッド (KEYWORD2)
@@ -47,6 +48,19 @@ state	KEYWORD2
 axis	KEYWORD2
 button	KEYWORD2
 batteryLow	KEYWORD2
+attracts	KEYWORD2
+key	KEYWORD2
+mouseDeltaX	KEYWORD2
+mouseDeltaY	KEYWORD2
+mouseTotalX	KEYWORD2
+mouseTotalY	KEYWORD2
+hp	KEYWORD2
+maxHp	KEYWORD2
+heat	KEYWORD2
+maxHeat	KEYWORD2
+team	KEYWORD2
+role	KEYWORD2
+bulletSpeedLimit	KEYWORD2
 
 #######################################
 # 定数 (LITERAL1)
@@ -65,3 +79,19 @@ Pairing	LITERAL1
 PairingFailed	LITERAL1
 Disconnected	LITERAL1
 Connected	LITERAL1
+MouseLeft	LITERAL1
+MouseRight	LITERAL1
+MouseMiddle	LITERAL1
+MouseSide1	LITERAL1
+MouseSide2	LITERAL1
+Num1	LITERAL1
+Num2	LITERAL1
+Num3	LITERAL1
+Num4	LITERAL1
+Num5	LITERAL1
+Tab	LITERAL1
+Shift	LITERAL1
+Ctrl	LITERAL1
+Alt	LITERAL1
+Space	LITERAL1
+Enter	LITERAL1
