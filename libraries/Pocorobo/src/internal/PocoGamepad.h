@@ -45,6 +45,7 @@ public:
 
 private:
   friend class PocoDevices;
+  friend struct PocoGamepadTestAccess;  // 実機検証用スケッチ(公開しない)から切り替え処理を直接呼ぶための入口
 
   // USB のつなぎ先
   enum class Mode : uint8_t {
