@@ -11,12 +11,12 @@
         {
           "name": "Pocorobo ESP32 Boards",
           "architecture": "esp32",
-          "version": "0.1.2",
+          "version": "0.2.0",
           "category": "Contributed",
-          "url": "https://github.com/robotic-games/pocorobo-arduino/releases/download/v0.1.2/pocorobo-esp32-0.1.2.zip",
-          "archiveFileName": "pocorobo-esp32-0.1.2.zip",
-          "checksum": "SHA-256:0112fb17230d5dc6c1d3c0b109efbde54a432d483d1eb9cc41fcff5f92a33621",
-          "size": "40126899",
+          "url": "https://github.com/robotic-games/pocorobo-arduino/releases/download/v0.2.0/pocorobo-esp32-0.2.0.zip",
+          "archiveFileName": "pocorobo-esp32-0.2.0.zip",
+          "checksum": "SHA-256:9f6b868ab8ac067979a3425a7819ab3084e9d8364edd9ebc8d18fe8c749b8dba",
+          "size": "40153481",
           "boards": [
             {
               "name": "Pocorobo Standard"
